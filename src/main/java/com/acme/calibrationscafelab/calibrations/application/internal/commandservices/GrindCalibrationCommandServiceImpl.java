@@ -1,0 +1,40 @@
+package com.acme.calibrationscafelab.calibrations.application.internal.commandservices;
+
+import com.acme.calibrationscafelab.calibrations.domain.model.aggregates.GrindCalibration;
+import com.acme.calibrationscafelab.calibrations.domain.model.commands.CreateGrindCalibrationCommand;
+import com.acme.calibrationscafelab.calibrations.domain.model.commands.UpdateGrindCalibrationCommand;
+import com.acme.calibrationscafelab.calibrations.domain.services.GrindCalibrationCommandService;
+import com.acme.calibrationscafelab.calibrations.infrastructure.persistence.jpa.repositories.GrindCalibrationRepository;
+import com.acme.calibrationscafelab.shared.domain.model.valueobjects.UserId;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
+
+@Service
+public class GrindCalibrationCommandServiceImpl implements GrindCalibrationCommandService {
+    private final GrindCalibrationRepository repository;
+
+    public GrindCalibrationCommandServiceImpl(GrindCalibrationRepository repository) {
+        this.repository = repository;
+    }
+
+    @Override
+    @Transactional
+    public Optional<GrindCalibration> handle(CreateGrindCalibrationCommand command) {
+        var entity = new GrindCalibration(command);
+        return Optional.of(repository.save(entity));
+    }
+
+    @Override
+    @Transactional
+    public Optional<GrindCalibration> handle(UpdateGrindCalibrationCommand command) {
+        return repository
+                .findByIdAndUserId(command.calibrationId(), new UserId(command.userId()))
+                .map(
+                        entity -> {
+                            entity.applyUpdate(command);
+                            return repository.save(entity);
+                        });
+    }
+}
