@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: calibrations-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: calibrations_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: cafelabpassword123
+    ports:
+      - "5435:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  calibrations:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: calibrations-cafelab:latest
+    container_name: calibrations-service
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - "8086:8086"
+    environment:
+      - PORT=8086
+      - SPRING_APPLICATION_NAME=Calibrations-CafeLab
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/calibrations_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=cafelabpassword123
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=cafelabpassword123
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+
+volumes:
+  pgdata:
